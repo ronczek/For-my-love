@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dla Ciebie 💌</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #FFFAF9;
+      --text:   #2C2226;
+      --rose:   #C8697A;
+      --blush:  #F2B8C0;
+      --pale:   #FDE8EC;
+      --white:  #FFFFFF;
+      --muted:  #9C7F85;
+      --shadow: rgba(200, 105, 122, 0.14);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+
+    /* ─── Peony decorations ─────────────────────────────────── */
+    .peony {
+      position: fixed;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.22;
+    }
+    .peony-tl { top: -30px; left: -30px; width: 240px; }
+    .peony-br { bottom: -30px; right: -30px; width: 200px; transform: rotate(180deg) scaleX(-1); }
+
+    /* ─── Pages ─────────────────────────────────────────────── */
+    .page {
+      display: none;
+      width: 100%;
+      max-width: 560px;
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      animation: rise 0.55s cubic-bezier(.22,.68,0,1.2) both;
+    }
+    .page.active { display: block; }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Typography ────────────────────────────────────────── */
+    .eyebrow {
+      font-size: 0.72rem;
+      font-weight: 400;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--rose);
+      margin-bottom: 1.4rem;
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: clamp(2.4rem, 8vw, 3.4rem);
+      font-weight: 300;
+      line-height: 1.15;
+      color: var(--text);
+      margin-bottom: 0.6rem;
+    }
+
+    h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: clamp(1.8rem, 6vw, 2.6rem);
+      font-weight: 300;
+      color: var(--text);
+      margin-bottom: 1.8rem;
+    }
+
+    .ask-line {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: clamp(1.05rem, 3.4vw, 1.3rem);
+      font-weight: 400;
+      color: var(--rose);
+      margin-bottom: 0.4rem;
+    }
+
+    .subtitle {
+      font-size: 0.92rem;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 2.8rem;
+    }
+
+    .divider {
+      width: 56px;
+      height: 1px;
+      background: var(--blush);
+      margin: 1.6rem auto;
+    }
+
+    /* ─── Buttons ───────────────────────────────────────────── */
+    .btn-yes {
+      background: var(--rose);
+      color: var(--white);
+      border: none;
+      border-radius: 50px;
+      padding: 0.9rem 2.6rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      box-shadow: 0 4px 22px var(--shadow);
+      transition: transform 0.14s, box-shadow 0.14s;
+    }
+    .btn-yes:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 7px 28px var(--shadow);
+    }
+
+    .btn-no {
+      background: transparent;
+      color: #BBA5AA;
+      border: 1.5px solid #E8D0D5;
+      border-radius: 50px;
+      padding: 0.9rem 2.6rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 400;
+      cursor: pointer;
+      transition: background 0.14s, color 0.14s;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #btn-no.is-free {
+      position: fixed;
+      z-index: 999;
+      pointer-events: none;   /* kursor "przenika" przycisk — nigdy nie da się go kliknąć */
+    }
+
+    .invite-btns {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* ─── Calendar ──────────────────────────────────────────── */
+    .card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 1.5rem;
+      box-shadow: 0 2px 26px var(--shadow);
+      margin-bottom: 1.2rem;
+      text-align: left;
+    }
+
+    .cal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .cal-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem;
+      font-weight: 400;
+      color: var(--text);
+    }
+    .cal-nav {
+      background: none;
+      border: none;
+      color: var(--rose);
+      font-size: 1.3rem;
+      cursor: pointer;
+      padding: 0.2rem 0.6rem;
+      border-radius: 8px;
+      line-height: 1;
+      transition: background 0.1s;
+    }
+    .cal-nav:hover { background: var(--pale); }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+      text-align: center;
+    }
+    .cal-dn {
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--rose);
+      padding: 0.35rem 0;
+    }
+    .cal-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.82rem;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .cal-day.empty, .cal-day.past { cursor: default; }
+    .cal-day.past { color: #DDD0D3; }
+    .cal-day.today { color: var(--rose); font-weight: 600; }
+    .cal-day:not(.empty):not(.past):not(.selected):hover {
+      background: var(--pale);
+      color: var(--rose);
+    }
+    .cal-day.selected {
+      background: var(--rose);
+      color: var(--white);
+    }
+
+    /* ─── Time slots ────────────────────────────────────────── */
+    .section-lbl {
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--rose);
+      margin-bottom: 0.7rem;
+    }
+    .time-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-bottom: 0;
+    }
+    .t-slot {
+      background: var(--white);
+      border: 1.5px solid #EAD6DA;
+      border-radius: 50px;
+      padding: 0.5rem 1.1rem;
+      font-size: 0.82rem;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer;
+      transition: all 0.12s;
+      color: var(--text);
+      box-shadow: 0 1px 8px var(--shadow);
+    }
+    .t-slot:hover { border-color: var(--rose); color: var(--rose); }
+    .t-slot.sel {
+      background: var(--rose);
+      border-color: var(--rose);
+      color: var(--white);
+    }
+
+    /* ─── Inputs ────────────────────────────────────────────── */
+    .f-input {
+      width: 100%;
+      padding: 0.82rem 1.15rem;
+      border: 1.5px solid #EAD6DA;
+      border-radius: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.93rem;
+      color: var(--text);
+      background: var(--white);
+      outline: none;
+      transition: border-color 0.15s;
+      margin-bottom: 0.9rem;
+    }
+    .f-input:last-child { margin-bottom: 0; }
+    .f-input:focus { border-color: var(--rose); }
+    .f-input::placeholder { color: #CDADB4; }
+
+    .err {
+      color: #E07080;
+      font-size: 0.78rem;
+      margin-top: 0.3rem;
+      margin-bottom: 0.5rem;
+      display: none;
+      text-align: left;
+      padding-left: 0.2rem;
+    }
+
+    /* ─── Submit button ─────────────────────────────────────── */
+    .btn-submit {
+      width: 100%;
+      background: var(--rose);
+      color: var(--white);
+      border: none;
+      border-radius: 50px;
+      padding: 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 0.4rem;
+      box-shadow: 0 4px 22px var(--shadow);
+      transition: opacity 0.15s, transform 0.14s;
+    }
+    .btn-submit:hover { transform: translateY(-1px); }
+    .btn-submit:disabled { opacity: 0.6; cursor: default; transform: none; }
+
+    /* ─── Thank you ─────────────────────────────────────────── */
+    .heart {
+      font-size: 4rem;
+      display: block;
+      margin-bottom: 1.2rem;
+      animation: hb 1.1s ease-in-out infinite;
+    }
+    @keyframes hb {
+      0%,100% { transform: scale(1); }
+      50%      { transform: scale(1.18); }
+    }
+
+    @media (max-width: 480px) {
+      .page { padding: 1.8rem 1rem; }
+      .peony-tl { width: 170px; }
+      .peony-br { width: 150px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Piwonie w rogach -->
+  <svg class="peony peony-tl" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <radialGradient id="pg1" cx="40%" cy="35%" r="70%">
+        <stop offset="0%" stop-color="#FBDCE1"/>
+        <stop offset="60%" stop-color="#EFA8B2"/>
+        <stop offset="100%" stop-color="#DD8696"/>
+      </radialGradient>
+    </defs>
+    <g transform="translate(120,118)" opacity=".85">
+      <!-- łodyga i liście -->
+      <path d="M -6 60 Q -30 110 -18 160" stroke="#A9C0A0" stroke-width="4" fill="none" opacity=".6"/>
+      <path d="M -18 95 Q -48 100 -58 78" stroke="#A9C0A0" stroke-width="3.5" fill="none" opacity=".55"/>
+      <ellipse cx="-58" cy="74" rx="16" ry="9" fill="#A9C0A0" opacity=".5" transform="rotate(-35,-58,74)"/>
+
+      <!-- warstwa zewnętrzna płatków -->
+      <g fill="url(#pg1)">
+        <path d="M0,0 C20,-6 34,-26 28,-48 C24,-62 8,-66 0,-58 C-8,-66 -24,-62 -28,-48 C-34,-26 -20,-6 0,0 Z" transform="rotate(0)"/>
+        <path d="M0,0 C20,-6 34,-26 28,-48 C24,-62 8,-66 0,-58 C-8,-66 -24,-62 -28,-48 C-34,-26 -20,-6 0,0 Z" transform="rotate(40)"/>
+        <path d="M0,0 C20,-6 34,-26 28,-48 C24,-62 8,-66 0,-58 C-8,-66 -24,-62 -28,-48 C-34,-26 -20,-6 0,0 Z" transform="rotate(80)"/>
+        <path d="M0,0 C20,-6 34,-26 28,-48 C24,-62 8,-66 0,-58 C-8,-66 -24,-62 -28,-48 C-34,-26 -20,-6 0,0 Z" transform="rotate(120)"/>
+        <path d="M0,0 C20,-6 34,-26 28,-48 C24,-62 8,-66 0,-58 C-8,-66 -24,-62 -28,-48 C-34,-26 -20,-6 0,0 Z" transform="rotate(160)"/>
+        <path d="M0,0 C20,-6 34,-26 28,-48 C24,-62 8,-66 0,-58 C-8,-66 -24,-62 -28,-48 C-34,-26 -20,-6 0,0 Z" transform="rotate(200)"/>
+        <path d="M0,0 C20,-6 34,-26 28,-48 C24,-62 8,-66 0,-58 C-8,-66 -24,-62 -28,-48 C-34,-26 -20,-6 0,0 Z" transform="rotate(240)"/>
+        <path d="M0,0 C20,-6 34,-26 28,-48 C24,-62 8,-66 0,-58 C-8,-66 -24,-62 -28,-48 C-34,-26 -20,-6 0,0 Z" transform="rotate(280)"/>
+        <path d="M0,0 C20,-6 34,-26 28,-48 C24,-62 8,-66 0,-58 C-8,-66 -24,-62 -28,-48 C-34,-26 -20,-6 0,0 Z" transform="rotate(320)"/>
+      </g>
+
+      <!-- warstwa środkowa, mniejsza i jaśniejsza -->
+      <g fill="#F6C3CB">
+        <path d="M0,0 C13,-4 22,-17 18,-32 C16,-41 5,-44 0,-38 C-5,-44 -16,-41 -18,-32 C-22,-17 -13,-4 0,0 Z" transform="rotate(20)"/>
+        <path d="M0,0 C13,-4 22,-17 18,-32 C16,-41 5,-44 0,-38 C-5,-44 -16,-41 -18,-32 C-22,-17 -13,-4 0,0 Z" transform="rotate(75)"/>
+        <path d="M0,0 C13,-4 22,-17 18,-32 C16,-41 5,-44 0,-38 C-5,-44 -16,-41 -18,-32 C-22,-17 -13,-4 0,0 Z" transform="rotate(130)"/>
+        <path d="M0,0 C13,-4 22,-17 18,-32 C16,-41 5,-44 0,-38 C-5,-44 -16,-41 -18,-32 C-22,-17 -13,-4 0,0 Z" transform="rotate(185)"/>
+        <path d="M0,0 C13,-4 22,-17 18,-32 C16,-41 5,-44 0,-38 C-5,-44 -16,-41 -18,-32 C-22,-17 -13,-4 0,0 Z" transform="rotate(240)"/>
+        <path d="M0,0 C13,-4 22,-17 18,-32 C16,-41 5,-44 0,-38 C-5,-44 -16,-41 -18,-32 C-22,-17 -13,-4 0,0 Z" transform="rotate(295)"/>
+      </g>
+
+      <!-- środek -->
+      <circle r="11" fill="#F0AFB9"/>
+      <g fill="#D97A8A">
+        <circle cx="0" cy="-4" r="2.6"/>
+        <circle cx="4" cy="1" r="2.4"/>
+        <circle cx="-4" cy="2" r="2.4"/>
+        <circle cx="0" cy="5" r="2.2"/>
+      </g>
+    </g>
+  </svg>
+
+  <svg class="peony peony-br" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(110,108) rotate(190)" opacity=".8">
+      <path d="M -5 55 Q -26 96 -16 142" stroke="#A9C0A0" stroke-width="3.5" fill="none" opacity=".55"/>
+      <ellipse cx="-44" cy="68" rx="14" ry="8" fill="#A9C0A0" opacity=".48" transform="rotate(-30,-44,68)"/>
+
+      <g fill="url(#pg1)">
+        <path d="M0,0 C17,-5 29,-22 24,-41 C20,-53 7,-56 0,-49 C-7,-56 -20,-53 -24,-41 C-29,-22 -17,-5 0,0 Z" transform="rotate(0)"/>
+        <path d="M0,0 C17,-5 29,-22 24,-41 C20,-53 7,-56 0,-49 C-7,-56 -20,-53 -24,-41 C-29,-22 -17,-5 0,0 Z" transform="rotate(40)"/>
+        <path d="M0,0 C17,-5 29,-22 24,-41 C20,-53 7,-56 0,-49 C-7,-56 -20,-53 -24,-41 C-29,-22 -17,-5 0,0 Z" transform="rotate(80)"/>
+        <path d="M0,0 C17,-5 29,-22 24,-41 C20,-53 7,-56 0,-49 C-7,-56 -20,-53 -24,-41 C-29,-22 -17,-5 0,0 Z" transform="rotate(120)"/>
+        <path d="M0,0 C17,-5 29,-22 24,-41 C20,-53 7,-56 0,-49 C-7,-56 -20,-53 -24,-41 C-29,-22 -17,-5 0,0 Z" transform="rotate(160)"/>
+        <path d="M0,0 C17,-5 29,-22 24,-41 C20,-53 7,-56 0,-49 C-7,-56 -20,-53 -24,-41 C-29,-22 -17,-5 0,0 Z" transform="rotate(200)"/>
+        <path d="M0,0 C17,-5 29,-22 24,-41 C20,-53 7,-56 0,-49 C-7,-56 -20,-53 -24,-41 C-29,-22 -17,-5 0,0 Z" transform="rotate(240)"/>
+        <path d="M0,0 C17,-5 29,-22 24,-41 C20,-53 7,-56 0,-49 C-7,-56 -20,-53 -24,-41 C-29,-22 -17,-5 0,0 Z" transform="rotate(280)"/>
+        <path d="M0,0 C17,-5 29,-22 24,-41 C20,-53 7,-56 0,-49 C-7,-56 -20,-53 -24,-41 C-29,-22 -17,-5 0,0 Z" transform="rotate(320)"/>
+      </g>
+
+      <g fill="#F6C3CB">
+        <path d="M0,0 C11,-3 19,-14 15,-27 C13,-35 4,-37 0,-32 C-4,-37 -13,-35 -15,-27 C-19,-14 -11,-3 0,0 Z" transform="rotate(20)"/>
+        <path d="M0,0 C11,-3 19,-14 15,-27 C13,-35 4,-37 0,-32 C-4,-37 -13,-35 -15,-27 C-19,-14 -11,-3 0,0 Z" transform="rotate(75)"/>
+        <path d="M0,0 C11,-3 19,-14 15,-27 C13,-35 4,-37 0,-32 C-4,-37 -13,-35 -15,-27 C-19,-14 -11,-3 0,0 Z" transform="rotate(130)"/>
+        <path d="M0,0 C11,-3 19,-14 15,-27 C13,-35 4,-37 0,-32 C-4,-37 -13,-35 -15,-27 C-19,-14 -11,-3 0,0 Z" transform="rotate(185)"/>
+        <path d="M0,0 C11,-3 19,-14 15,-27 C13,-35 4,-37 0,-32 C-4,-37 -13,-35 -15,-27 C-19,-14 -11,-3 0,0 Z" transform="rotate(240)"/>
+        <path d="M0,0 C11,-3 19,-14 15,-27 C13,-35 4,-37 0,-32 C-4,-37 -13,-35 -15,-27 C-19,-14 -11,-3 0,0 Z" transform="rotate(295)"/>
+      </g>
+
+      <circle r="9" fill="#F0AFB9"/>
+      <g fill="#D97A8A">
+        <circle cx="0" cy="-3" r="2.2"/>
+        <circle cx="3" cy="1" r="2"/>
+        <circle cx="-3" cy="2" r="2"/>
+      </g>
+    </g>
+  </svg>
+
+  <!-- ═══ STRONA 1: Zaproszenie ═══ -->
+  <div class="page active" id="page-invite">
+    <p class="eyebrow">Dla Dagmary 🌸</p>
+    <h1>Chodź ze mną<br>na randkę</h1>
+    <p class="ask-line">Chcesz iść ze mną na randkę?</p>
+    <div class="divider"></div>
+    <div class="invite-btns">
+      <button class="btn-yes" id="btn-yes">Tak! 💕</button>
+      <button class="btn-no" id="btn-no">Nie</button>
+    </div>
+  </div>
+
+  <!-- ═══ STRONA 2: Formularz ═══ -->
+  <div class="page" id="page-form">
+    <h2>Kiedy i gdzie? 🌸</h2>
+    <p class="subtitle" style="margin-bottom:1.4rem;">Wybierz termin, który Ci pasuje</p>
+
+    <!-- Kalendarz -->
+    <div class="card">
+      <div class="cal-header">
+        <button class="cal-nav" id="cal-prev">‹</button>
+        <span class="cal-title" id="cal-label"></span>
+        <button class="cal-nav" id="cal-next">›</button>
+      </div>
+      <div class="cal-grid" id="cal-grid">
+        <div class="cal-dn">Pn</div><div class="cal-dn">Wt</div>
+        <div class="cal-dn">Śr</div><div class="cal-dn">Cz</div>
+        <div class="cal-dn">Pt</div><div class="cal-dn">Sb</div>
+        <div class="cal-dn">Nd</div>
+      </div>
+    </div>
+    <div class="err" id="err-date">Proszę wybierz datę 🌸</div>
+
+    <!-- Godzina -->
+    <div class="card">
+      <p class="section-lbl">O której?</p>
+      <div class="time-grid">
+        <button class="t-slot" data-t="Rano (10:00–12:00)">🌅 Rano</button>
+        <button class="t-slot" data-t="Południe (12:00–15:00)">☀️ Południe</button>
+        <button class="t-slot" data-t="Popołudnie (15:00–18:00)">🌤️ Popołudnie</button>
+        <button class="t-slot" data-t="Wieczór (18:00–21:00)">🌙 Wieczór</button>
+        <button class="t-slot" data-t="Noc (21:00+)">✨ Noc</button>
+      </div>
+    </div>
+    <div class="err" id="err-time">Proszę wybierz porę dnia 🌸</div>
+
+    <!-- Miasto i miejsce -->
+    <div class="card">
+      <p class="section-lbl" style="margin-bottom:.85rem;">Gdzie?</p>
+      <input class="f-input" id="in-city"  type="text" placeholder="Miasto..." maxlength="100">
+      <input class="f-input" id="in-place" type="text" placeholder="Konkretne miejsce... (opcjonalne)" maxlength="200">
+    </div>
+
+    <button class="btn-submit" id="btn-submit">Wyślij 💌</button>
+  </div>
+
+  <!-- ═══ STRONA 3: Dziękuję ═══ -->
+  <div class="page" id="page-thanks">
+    <span class="heart">💕</span>
+    <h2>Nie mogę się doczekać!</h2>
+    <div class="divider"></div>
+    <p class="subtitle">
+      Odezwę się wkrótce z potwierdzeniem.<br>
+      Do zobaczenia! 🌸
+    </p>
+  </div>
+
+  <script>
+    // ════════════════════════════════════════════════════════════
+    //  KONFIGURACJA EMAILJS — uzupełnij po rejestracji na emailjs.com
+    // ════════════════════════════════════════════════════════════
+    const EMAILJS_PUBLIC_KEY  = 'XOSuT_-zNb5yNvPbE';
+    const EMAILJS_SERVICE_ID  = 'service_it9o23p';
+    const EMAILJS_TEMPLATE_ID = 'template_zlgatuw';
+
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+
+    // ─── Przełączanie stron ──────────────────────────────────────
+    function showPage(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    // ─── Przycisk "Nie" — ucieka ────────────────────────────────
+    const btnNo  = document.getElementById('btn-no');
+    const btnYes = document.getElementById('btn-yes');
+
+    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    let noCount = 0;
+
+    if (!isTouch) {
+      // Desktop: gdy kursor podejdzie blisko -> przycisk przeskakuje w losowe wolne miejsce
+      let freed     = false;
+      let bw = 0, bh = 0;
+      const safeDist = 140;   // promień, w którym przycisk "ucieka"
+      const margin   = 18;
+
+      function jumpAway(mouseX, mouseY) {
+        bw = btnNo.offsetWidth  || bw || 110;
+        bh = btnNo.offsetHeight || bh || 46;
+        let best = null, bestD = -1;
+        for (let i = 0; i < 12; i++) {
+          const tx = margin + Math.random() * (window.innerWidth  - bw - margin * 2);
+          const ty = margin + Math.random() * (window.innerHeight - bh - margin * 2);
+          const d  = Math.hypot(tx + bw / 2 - mouseX, ty + bh / 2 - mouseY);
+          if (d > bestD) { bestD = d; best = { tx, ty }; }
+        }
+        btnNo.style.left = best.tx + 'px';
+        btnNo.style.top  = best.ty + 'px';
+      }
+
+      function checkProximity(mouseX, mouseY) {
+        const rect = btnNo.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top  + rect.height / 2;
+        if (Math.hypot(mouseX - cx, mouseY - cy) < safeDist) {
+          if (!freed) {
+            freed = true;
+            btnNo.classList.add('is-free');
+          }
+          jumpAway(mouseX, mouseY);
+        }
+      }
+
+      document.addEventListener('mousemove', e => checkProximity(e.clientX, e.clientY));
+
+      // failsafe gdyby jednak udało się kliknąć
+      btnNo.addEventListener('click', e => {
+        jumpAway(e.clientX, e.clientY);
+        if (!freed) { freed = true; btnNo.classList.add('is-free'); }
+      });
+    } else {
+      // Mobile: zmienia tekst i maleje
+      const noTexts = ['Nie', 'Na pewno nie?', 'Serio?', 'Hmm...', 'No dobra 😄'];
+      btnNo.addEventListener('click', function () {
+        noCount++;
+        if (noCount < noTexts.length) {
+          btnNo.textContent = noTexts[noCount];
+          btnNo.style.transform = `scale(${Math.max(0.7, 1 - noCount * 0.08)})`;
+          btnNo.style.opacity   = `${Math.max(0.4, 1 - noCount * 0.12)}`;
+        } else {
+          btnNo.style.display = 'none';
+          btnYes.textContent  = 'Tak! 💕 (wiedziałam)';
+        }
+      });
+    }
+
+    // ─── Przycisk "Tak" ──────────────────────────────────────────
+    btnYes.addEventListener('click', function () {
+      showPage('page-form');
+    });
+
+    // ─── Kalendarz ───────────────────────────────────────────────
+    const MONTHS = ['Styczeń','Luty','Marzec','Kwiecień','Maj','Czerwiec',
+                    'Lipiec','Sierpień','Wrzesień','Październik','Listopad','Grudzień'];
+    let now       = new Date();
+    let viewYear  = now.getFullYear();
+    let viewMonth = now.getMonth();
+    let selDate   = null;
+
+    function buildCalendar() {
+      const grid  = document.getElementById('cal-grid');
+      const label = document.getElementById('cal-label');
+      label.textContent = MONTHS[viewMonth] + ' ' + viewYear;
+
+      // Usuń komórki dni (zachowaj 7 nagłówków)
+      Array.from(grid.children).slice(7).forEach(c => c.remove());
+
+      const first = new Date(viewYear, viewMonth, 1);
+      const last  = new Date(viewYear, viewMonth + 1, 0);
+
+      let offset = first.getDay() - 1;
+      if (offset < 0) offset = 6;
+
+      const today = new Date(); today.setHours(0,0,0,0);
+
+      for (let i = 0; i < offset; i++) {
+        const el = document.createElement('div');
+        el.className = 'cal-day empty';
+        grid.appendChild(el);
+      }
+
+      for (let d = 1; d <= last.getDate(); d++) {
+        const el   = document.createElement('div');
+        el.className = 'cal-day';
+        el.textContent = d;
+
+        const date = new Date(viewYear, viewMonth, d);
+        date.setHours(0,0,0,0);
+
+        if (date < today) {
+          el.classList.add('past');
+        } else {
+          if (date.getTime() === today.getTime()) el.classList.add('today');
+          if (selDate && date.getTime() === selDate.getTime()) el.classList.add('selected');
+          el.addEventListener('click', () => { selDate = date; buildCalendar(); });
+        }
+        grid.appendChild(el);
+      }
+    }
+
+    document.getElementById('cal-prev').addEventListener('click', () => {
+      viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; } buildCalendar();
+    });
+    document.getElementById('cal-next').addEventListener('click', () => {
+      viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; } buildCalendar();
+    });
+
+    buildCalendar();
+
+    // ─── Pory dnia ───────────────────────────────────────────────
+    let selTime = null;
+    document.querySelectorAll('.t-slot').forEach(btn => {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('.t-slot').forEach(b => b.classList.remove('sel'));
+        this.classList.add('sel');
+        selTime = this.dataset.t;
+      });
+    });
+
+    // ─── Wyślij ──────────────────────────────────────────────────
+    document.getElementById('btn-submit').addEventListener('click', async function () {
+      let ok = true;
+
+      if (!selDate) {
+        document.getElementById('err-date').style.display = 'block'; ok = false;
+      } else {
+        document.getElementById('err-date').style.display = 'none';
+      }
+      if (!selTime) {
+        document.getElementById('err-time').style.display = 'block'; ok = false;
+      } else {
+        document.getElementById('err-time').style.display = 'none';
+      }
+      if (!ok) return;
+
+      const city  = document.getElementById('in-city').value.trim()  || 'nie podano';
+      const place = document.getElementById('in-place').value.trim() || 'nie podano';
+      const dateStr = selDate.toLocaleDateString('pl-PL', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      });
+
+      const payload = {
+        date: dateStr, time: selTime, city, place,
+        submittedAt: new Date().toLocaleString('pl-PL')
+      };
+
+      // Zakoduj dane do linku admina (w emailu będzie klikalne)
+      const encoded  = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+      const base     = window.location.href.replace(/\/index\.html.*$/, '').replace(/\/$/, '');
+      const adminUrl = base + '/admin.html?d=' + encoded;
+
+      // Zapisz lokalnie (backup)
+      try { localStorage.setItem('randka_response', JSON.stringify(payload)); } catch(e) {}
+
+      this.textContent = 'Wysyłam... 💌';
+      this.disabled = true;
+
+      // Wyślij email
+      try {
+        await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+          date:      dateStr,
+          time:      selTime,
+          city,
+          place,
+          admin_url: adminUrl,
+          submitted: payload.submittedAt
+        });
+      } catch (e) {
+        // Email nie wysłany (brak konfiguracji), ale strona i tak przejdzie dalej
+        console.warn('EmailJS: uzupełnij konfigurację.', e);
+      }
+
+      showPage('page-thanks');
+    });
+  </script>
+</body>
+</html>

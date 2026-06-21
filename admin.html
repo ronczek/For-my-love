@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel 🌸</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #FFFAF9;
+      --text:   #2C2226;
+      --rose:   #C8697A;
+      --blush:  #F2B8C0;
+      --pale:   #FDE8EC;
+      --white:  #FFFFFF;
+      --muted:  #9C7F85;
+      --shadow: rgba(200, 105, 122, 0.14);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+      animation: rise 0.5s ease both;
+    }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .eyebrow {
+      font-size: 0.72rem;
+      font-weight: 400;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--rose);
+      margin-bottom: 1rem;
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: clamp(1.8rem, 6vw, 2.4rem);
+      font-weight: 300;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+    }
+
+    .divider {
+      width: 50px;
+      height: 1px;
+      background: var(--blush);
+      margin: 1.4rem auto;
+    }
+
+    /* ─── Logowanie ─────────────────────────────────────────── */
+    .card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 2rem 1.8rem;
+      box-shadow: 0 2px 26px var(--shadow);
+      margin-top: 0.5rem;
+      text-align: left;
+    }
+
+    .pwd-input {
+      width: 100%;
+      padding: 0.85rem 1.2rem;
+      border: 1.5px solid #EAD6DA;
+      border-radius: 14px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1.1rem;
+      color: var(--text);
+      text-align: center;
+      letter-spacing: 0.25em;
+      outline: none;
+      transition: border-color 0.15s;
+      margin-bottom: 1rem;
+    }
+    .pwd-input:focus { border-color: var(--rose); }
+
+    .btn-login {
+      width: 100%;
+      background: var(--rose);
+      color: var(--white);
+      border: none;
+      border-radius: 50px;
+      padding: 0.95rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      box-shadow: 0 4px 20px var(--shadow);
+      transition: opacity 0.14s, transform 0.14s;
+    }
+    .btn-login:hover { transform: translateY(-1px); }
+
+    .login-err {
+      color: #E07080;
+      font-size: 0.8rem;
+      margin-top: 0.7rem;
+      text-align: center;
+      display: none;
+    }
+
+    /* ─── Panel z odpowiedzią ───────────────────────────────── */
+    #panel { display: none; }
+
+    .response-card {
+      background: var(--white);
+      border-radius: 20px;
+      box-shadow: 0 2px 26px var(--shadow);
+      overflow: hidden;
+      margin-top: 0.5rem;
+      text-align: left;
+    }
+
+    .r-row {
+      display: flex;
+      gap: 1rem;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #F5E8EA;
+      align-items: flex-start;
+    }
+    .r-row:last-child { border-bottom: none; }
+
+    .r-label {
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--rose);
+      min-width: 76px;
+      padding-top: 2px;
+      flex-shrink: 0;
+    }
+
+    .r-val {
+      font-size: 0.92rem;
+      color: var(--text);
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    .stamp {
+      font-size: 0.72rem;
+      color: #C5AFB4;
+      margin-top: 0.9rem;
+      text-align: right;
+    }
+
+    /* ─── Pusty stan ────────────────────────────────────────── */
+    .empty {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 2.5rem 2rem;
+      box-shadow: 0 2px 26px var(--shadow);
+      margin-top: 0.5rem;
+      text-align: center;
+    }
+    .empty-icon { font-size: 2.6rem; display: block; margin-bottom: 0.8rem; }
+    .empty-txt  { color: var(--muted); font-size: 0.88rem; line-height: 1.7; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- ═══ LOGOWANIE ═══ -->
+    <div id="login">
+      <p class="eyebrow">Prywatne 🌸</p>
+      <h1>Panel admina</h1>
+      <div class="divider"></div>
+      <div class="card">
+        <input
+          type="password"
+          class="pwd-input"
+          id="pwd"
+          placeholder="••••••••••"
+          autocomplete="off"
+        >
+        <button class="btn-login" onclick="tryLogin()">Wejdź</button>
+        <p class="login-err" id="login-err">Złe hasło 🌹 Spróbuj ponownie.</p>
+      </div>
+    </div>
+
+    <!-- ═══ PANEL ═══ -->
+    <div id="panel">
+      <p class="eyebrow">Odpowiedź jest! 🌸</p>
+      <h1 id="panel-title">Powiedziała tak!</h1>
+      <div class="divider"></div>
+      <div id="panel-content"></div>
+    </div>
+
+  </div>
+
+  <script>
+    // ════════════════════════════════════════════════════════════
+    //  HASŁO DO PANELU ADMINA — zmień na swoje!
+    // ════════════════════════════════════════════════════════════
+    const ADMIN_PASS = 'Kuba_2005!@#';
+
+    // ─── Enter = zaloguj ─────────────────────────────────────────
+    document.getElementById('pwd').addEventListener('keydown', e => {
+      if (e.key === 'Enter') tryLogin();
+    });
+
+    // ─── Logowanie ───────────────────────────────────────────────
+    function tryLogin() {
+      const val = document.getElementById('pwd').value;
+      if (val === ADMIN_PASS) {
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('panel').style.display = 'block';
+        loadData();
+      } else {
+        const err = document.getElementById('login-err');
+        err.style.display = 'block';
+        document.getElementById('pwd').value = '';
+        document.getElementById('pwd').focus();
+        // Potrząśnij polem
+        const input = document.getElementById('pwd');
+        input.style.animation = 'none';
+        setTimeout(() => {
+          input.style.borderColor = '#E07080';
+          setTimeout(() => { input.style.borderColor = ''; }, 1000);
+        }, 10);
+      }
+    }
+
+    // ─── Wczytaj odpowiedź ───────────────────────────────────────
+    function loadData() {
+      const content = document.getElementById('panel-content');
+      let data = null;
+
+      // 1. Sprawdź URL (link z emaila zawiera zakodowane dane)
+      const urlParam = new URLSearchParams(window.location.search).get('d');
+      if (urlParam) {
+        try {
+          data = JSON.parse(decodeURIComponent(escape(atob(urlParam))));
+        } catch(e) { /* ignoruj błąd dekodowania */ }
+      }
+
+      // 2. Fallback: localStorage (jeśli sprawdzasz z tego samego urządzenia)
+      if (!data) {
+        try {
+          const raw = localStorage.getItem('randka_response');
+          if (raw) data = JSON.parse(raw);
+        } catch(e) {}
+      }
+
+      if (data) {
+        content.innerHTML = `
+          <div class="response-card">
+            <div class="r-row">
+              <span class="r-label">Data</span>
+              <span class="r-val">${esc(data.date)}</span>
+            </div>
+            <div class="r-row">
+              <span class="r-label">Godzina</span>
+              <span class="r-val">${esc(data.time)}</span>
+            </div>
+            <div class="r-row">
+              <span class="r-label">Miasto</span>
+              <span class="r-val">${esc(data.city)}</span>
+            </div>
+            <div class="r-row">
+              <span class="r-label">Miejsce</span>
+              <span class="r-val">${esc(data.place)}</span>
+            </div>
+          </div>
+          <p class="stamp">Wysłano: ${esc(data.submittedAt)}</p>
+        `;
+      } else {
+        document.getElementById('panel-title').textContent = 'Czekamy...';
+        content.innerHTML = `
+          <div class="empty">
+            <span class="empty-icon">💌</span>
+            <p class="empty-txt">
+              Jeszcze brak odpowiedzi.<br>
+              Sprawdź skrzynkę mailową — link z danymi przyjdzie emailem.
+            </p>
+          </div>
+        `;
+      }
+    }
+
+    // Zabezpieczenie przed XSS
+    function esc(str) {
+      if (!str) return '—';
+      return String(str)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+  </script>
+</body>
+</html>
